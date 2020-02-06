@@ -17,9 +17,10 @@
 from sys import argv
 from socket import socket, AF_INET, SOCK_STREAM
 
+ENCODING = "utf-8"
+HOST_NAME = "HOST> "
 MAX_CHARACTERS = 501
 SERVER_PORT = 7777
-HOST_NAME = "HOST>"
 if len(argv) > 1:
     SERVER_PORT = int(argv[1])
     
@@ -31,15 +32,26 @@ if __name__ == "__main__":
     serverSocket.listen(1)
     print('Server Running on Port', SERVER_PORT, 'and Ready to Receive.')
     while 1:
-        # Get
+        # Accept a Connection
         connectionSocket, addr = serverSocket.accept()
-        # Get Message from Client
-        clientMessage = connectionSocket.recv(MAX_CHARACTERS)
-        print(clientMessage)
-        # Get Message from Command Line
-        serverMessage = input(HOST_NAME)
-        # Send Message to Client if Quit Command not input
-        if serverMessage != "\\quit":
-            serverMessage = HOST_NAME + serverMessage
-            connectionSocket.send(serverMessage)
-        connectionSocket.close()
+
+        while 1:
+            # Get Message from Client
+            clientMessage = connectionSocket.recv(MAX_CHARACTERS).decode(ENCODING)
+            if clientMessage[:-1] != "\\quit":
+                print(clientMessage[:-1])
+            else:
+                connectionSocket.close()
+                break
+
+            # Get Message from Command Line
+            serverMessage = input(HOST_NAME)
+
+            # Send Message to Client if Quit Command not input
+            if serverMessage != "\\quit":
+                serverMessage = HOST_NAME + serverMessage
+                connectionSocket.send(serverMessage.encode(ENCODING))
+            else:
+                connectionSocket.send(serverMessage.encode(ENCODING))
+                connectionSocket.close()
+                break

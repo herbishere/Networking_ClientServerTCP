@@ -27,21 +27,12 @@
 
 void error(const char *msg) { perror(msg); exit(1); } // Error function used for reporting issues
 
-int getInput(char* input, int inputSize)
-{
-    fgets(input, inputSize, stdin);
-    return 0;
-}
+int getInput(char* input, int inputSize);
 
-int sendMessage(char* handle, char* message, int fileDescriptor);
+int sendMessage(char* message, int fileDescriptor);
+int recvMessage(char* message, int fileDescriptor);
 
-int checkQuit(char* buffer, char* exitCommand, int socketFD)
-{
-    if (!strcmp(buffer, exitCommand))
-    {
-        close(socketFD);
-    }
-}
+int checkQuit(char* buffer, char* exitCommand, int socketFD);
 
 int main(int argc, char *argv[])
 {
@@ -73,20 +64,34 @@ int main(int argc, char *argv[])
     printf("Enter Handle: ");
     getInput(handle, MAX_HANDLE_SIZE);
     int handleLength = strlen(handle);  // Get the Number of Characters of Handle
-    handle[handleLength - 1] = 0;       // Remove Trailing Newline
+    handle[handleLength - 1] = '\0';       // Remove Trailing Newline
 
-    // Get Message To Send or Quit Program
-    printf("%s> ", handle);
-    getInput(buffer, MAX_CHARACTERS - handleLength);
-    checkQuit(buffer, "\\quit", socketFD);
+    while (1)
+    {
+        // Get Message To Send or Quit Program
+        printf("%s> ", handle);
+        getInput(buffer, MAX_CHARACTERS - handleLength);
+        checkQuit(buffer, "\\quit\n", socketFD);
 
-    // Send Message
-    char message[MAX_CHARACTERS];
-    snprintf(message, MAX_CHARACTERS, "%s> %s", handle, buffer);
-    sendMessage(handle, message, socketFD);
+        // Send Message
+        char message[MAX_CHARACTERS];
+        snprintf(message, MAX_CHARACTERS, "%s> %s", handle, buffer);
+        sendMessage(message, socketFD);
 
-    // Receive and Print Message to Server
+        // Receive Message from Server
+        recvMessage(buffer, socketFD);
 
+        // Print Message
+        printf("%s\n", buffer);
+    }
+
+    return 0;
+}
+
+int getInput(char* input, int inputSize)
+{
+    fgets(input, inputSize, stdin);
+    fflush(stdout);
     return 0;
 }
 
@@ -94,20 +99,48 @@ int main(int argc, char *argv[])
  * int sendMessage(char* source, char* message, int fileDescriptor)
  *  Sends a message to the connection.
  * Arguments:
- * 	char* handle - Whether the user's handle
  *  char* message - the message to send.
  *  int fileDescriptor - the file descriptor of the connection.
  * Returns:
  * 	0 on success.
 *********************************************************************/
-int sendMessage(char* handle, char* message, int fileDescriptor)
+int sendMessage(char* message, int fileDescriptor)
 {
 	int charsWritten;
 
-	// printf("%s: I sent this to the server \"%s\" %ld\n", handle, message, strlen(message));
 	charsWritten = send(fileDescriptor, message, strlen(message), 0); // Write to the server
-	if (charsWritten < 0) { fprintf(stderr, "%s", handle); error(": ERROR writing to socket"); }
-	if (charsWritten < strlen(message)) printf("%s: WARNING: Not all data written to socket!\n", handle);
+	if (charsWritten < 0) { error("CLIENT: ERROR writing to socket"); }
+	if (charsWritten < strlen(message)) printf("CLIENT: WARNING: Not all data written to socket!\n");
 	
 	return 0;
+}
+
+/*********************************************************************
+ * int recvMessage(char* message, int fileDescriptor)
+ *  Recieves a message from a connection
+ * Arguments:
+ *  char* buffer - The location to hold the recieves message
+ *  int fileDescriptor - the file descriptor of the connection.
+ * Returns:
+ * 	0 on success.
+*********************************************************************/
+int recvMessage(char* message, int fileDescriptor)
+{
+	int charsRead;
+
+	memset(message, '\0', MAX_CHARACTERS); // Clear out the buffer again for reuse
+	charsRead = recv(fileDescriptor, message, MAX_CHARACTERS - 1, 0); // Read data from the socket, leaving \0 at end
+	if (charsRead < 0) { error("CLIENT: ERROR reading from socket"); }
+
+	return 0;
+}
+
+int checkQuit(char* buffer, char* exitCommand, int socketFD)
+{
+    if (!strcmp(buffer, exitCommand))
+    {
+        sendMessage(buffer, socketFD);  // Inform Server of Exit
+        close(socketFD);                // Close the Socket
+        exit(0);                        // Exit the Program
+    }
 }
