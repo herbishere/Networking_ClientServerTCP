@@ -11,30 +11,27 @@
         backslash-quit) (b) command. To terminate the server, 
         send a SIGINT with ctrl + c in the terminal.
     Course Name:     CS 372 Intro to Computer Networks
-    Last Modified:   02/05/2020
+    Last Modified:   02/07/2020
 '''
 
 from sys import argv
 from socket import socket, AF_INET, SOCK_STREAM
+from signal import signal, SIGINT
 
-ENCODING = "utf-8"
-HOST_NAME = "HOST> "
-EXIT_COMMAND = "\\quit"
-MAX_CHARACTERS = 501
-SERVER_PORT = 7777
-if len(argv) > 1:
-    SERVER_PORT = int(argv[1])
-
-def initListenServer(portNumber):
+def getPort(argv, default):
     '''
     '''
-    # Create TCP Socket
+    if len(argv) > 1:
+        return int(argv[1])
+    return default
+
+def initServer(hostName, portNumber):
+    '''
+    '''
     serverSocket = socket(AF_INET, SOCK_STREAM)
-    serverSocket.bind(('', portNumber))
-    # Listen for TCP Requests
+    serverSocket.bind((hostName, portNumber))
     serverSocket.listen(1)
-    print('Server Running on Port', portNumber, 'and Ready to Receive.')
-
+    print('Server Running on Port', portNumber, 'and Ready to Receive. Press Ctrl + C to End.')
     return serverSocket
 
 def recvMessage(connectionSocket, maxCharacters, encoding):
@@ -42,60 +39,75 @@ def recvMessage(connectionSocket, maxCharacters, encoding):
     '''
     return connectionSocket.recv(maxCharacters).decode(encoding)[:-1]
 
+def prepareMessage(message, hostName, separator):
+    return hostName + separator + message
+
 def sendMessage(message, connectionSocket, encoding):
     '''
     '''
     connectionSocket.send(message.encode(encoding))
-
-def checkQuit(message, exitCommand):
-    if (message == exitCommand):
-        return True
-    return False
 
 def getInput(message):
     '''
     '''
     return input(message)
 
+def checkQuit(message, exitCommand):
+    '''
+    '''
+    if (message == exitCommand):
+        return True
+    return False
+
+def terminateConnection(addr, conncetionSocket, terminator):
+    '''
+    '''
+    print('Connection', addr, 'Terminated by', terminator + ".")
+    connectionSocket.close()
+
+def signalHandler(signal, frame):
+    '''
+    https://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
+    '''
+    print('\nSIGINT detected. Terminating Program...')
+    exit(0)
+
 if __name__ == "__main__":
+    MAX_CHARACTERS = 500
+    ENCODING = 'utf-8'
+    HOST_NAME = 'HOST'
+    SEPARATOR = '> '
+    QUIT_CMD = '\\quit'
+    HOST = 'localhost'
+    PORT = getPort(argv, 9999)
 
-    serverSocket = initListenServer(SERVER_PORT)        # Create a TCP Socket and Listen for TCP Requests
+    signal(SIGINT, signalHandler)   # Set Signal Handler
 
-    while 1:
-        connectionSocket, addr = serverSocket.accept()  # Accept a Connection
-        newConnection = True
+    serverSocket = initServer(HOST, PORT)
 
-        while 1:
-            if newConnection:
-                newConnection = False
-                print("===New Connection Established===")
-            quitFlag = False
+    while True:
+        connectionSocket, addr = serverSocket.accept()
 
-            # Get Message from Client
-            clientMessage = recvMessage(connectionSocket, MAX_CHARACTERS, ENCODING)
+        with connectionSocket:
+            print('Connected by', addr)
+            while True:
+                # Get Message From Client
+                message = recvMessage(connectionSocket, MAX_CHARACTERS + 1,ENCODING)
 
-            # Check if Client Terminated Connection
-            quitFlag = checkQuit(clientMessage, EXIT_COMMAND)
+                # Process Recieved Message
+                if message:                         # Display Received Message, 
+                    print(message)
+                else:                               # Exit Loop if Client Terminated Connection
+                    terminateConnection(addr, connectionSocket, "Client")
+                    break
 
-            if quitFlag:                                # End Connection if Exit Command Received.
-                connectionSocket.close()
-                break
-            else:                                       # Otherwise, Print the Message
-                print(clientMessage)
+                # Get Message From User
+                message = getInput(HOST_NAME + SEPARATOR)
 
-            serverMessage = getInput(HOST_NAME)         # Get Message from Command Line
-
-            # Check if Server Terminated Connection
-            quitFlag = checkQuit(serverMessage, EXIT_COMMAND)
-
-            # If Not Quitting, Prepare Message to Send
-            if not quitFlag:
-                serverMessage = HOST_NAME + serverMessage
-
-            # Send Message
-            sendMessage(serverMessage, connectionSocket, ENCODING)
-
-            # If Quitting, End Connection
-            if quitFlag:
-                connectionSocket.close()
-                break
+                # Process User's Input
+                if checkQuit(message, QUIT_CMD):    # Terminate Connection if User Entered Quit Command
+                    terminateConnection(addr, connectionSocket, "Server")
+                    break
+                else:                               # Prepare and Send Message to Client
+                    message = prepareMessage(message, HOST_NAME, SEPARATOR)
+                    sendMessage(message, connectionSocket, ENCODING)
