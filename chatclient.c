@@ -8,8 +8,14 @@
  *      getting the user's handle, the user can send messages
  *      until either they or the host terminate the connection with
  *      the "\quit" command.
+ *      Code Adapted From:
+ *          Beej
+ *              > https://beej.us/guide/bgnet/html/
+ *          CS344 Operating Systems
+ *              > Instructor: Tyler Lawson
+ *              > Program 4 
  * Course Name:     CS 372 Intro to Computer Networks
- * Last Modified:   02/05/2020
+ * Last Modified:   02/07/2020
 **/
 
 #include <stdio.h>
@@ -25,14 +31,13 @@
 #define MAX_HANDLE_SIZE 11
 #define h_addr h_addr_list[0]
 
+// PROTOTYPES
 void error(const char *msg) { perror(msg); exit(1); } // Error function used for reporting issues
-
 int getInput(char* input, int inputSize);
-
 int sendMessage(char* message, int fileDescriptor);
 int recvMessage(char* message, int fileDescriptor);
-
 int checkQuit(char* buffer, char* exitCommand, int socketFD);
+int quit(int socketFD);
 
 int main(int argc, char *argv[])
 {
@@ -88,10 +93,11 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+/*********************************************************************
+*********************************************************************/
 int getInput(char* input, int inputSize)
 {
     fgets(input, inputSize, stdin);
-    fflush(stdout);
     return 0;
 }
 
@@ -132,15 +138,34 @@ int recvMessage(char* message, int fileDescriptor)
 	charsRead = recv(fileDescriptor, message, MAX_CHARACTERS - 1, 0); // Read data from the socket, leaving \0 at end
 	if (charsRead < 0) { error("CLIENT: ERROR reading from socket"); }
 
+    // If Server Terminated Connection, Terminate Program.
+    if (charsRead == 0)
+    {
+        // close(fileDescriptor);
+        // exit(0);
+        quit(fileDescriptor);
+    }
+
 	return 0;
 }
 
+/*********************************************************************
+*********************************************************************/
 int checkQuit(char* buffer, char* exitCommand, int socketFD)
 {
     if (!strcmp(buffer, exitCommand))
     {
-        sendMessage(buffer, socketFD);  // Inform Server of Exit
-        close(socketFD);                // Close the Socket
-        exit(0);                        // Exit the Program
+        // close(socketFD);                // Close the Socket
+        // exit(0);                        // Exit the Program
+        quit(socketFD);
     }
+    return 0;
+}
+
+/*********************************************************************
+*********************************************************************/
+int quit(int socketFD)
+{
+    close(socketFD);                // Close the Socket
+    exit(0);                        // Exit the Program
 }
