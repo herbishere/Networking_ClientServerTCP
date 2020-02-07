@@ -90,15 +90,23 @@ def sendMessage(message, connectionSocket, encoding):
     '''
     connectionSocket.send(message.encode(encoding))
 
-def getInput(message):
+def getInput(message, maxLength):
     '''
     Gets and returns the user's input
     Pre-Conditions:
         message = The displayed message before taking the user's input.
+        maxLength = The maximum number of characters that can be sent to client
     Post-Conditions:
         Returns the user's input
     '''
-    return input(message)
+    # Get Input
+    userInput = input(message)
+    # If userInput is too high, inform user and return the trinned message
+    if len(userInput) > maxLength:
+        print('ERROR: Too Many Characters. Part of Message Lost')
+        return userInput[0:maxLength]
+    # Otherwise return the user's normal input
+    return userInput
 
 def checkQuit(message, exitCommand):
     '''
@@ -172,7 +180,7 @@ if __name__ == "__main__":
                     break
 
                 # Get Message From User
-                message = getInput(HOST_NAME + SEPARATOR)
+                message = getInput(HOST_NAME + SEPARATOR, MAX_CHARACTERS - len(HOST_NAME) - len(SEPARATOR))
 
                 # Process User's Input
                 if checkQuit(message, QUIT_CMD):    # Terminate Connection if User Entered Quit Command
