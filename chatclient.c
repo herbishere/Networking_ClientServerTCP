@@ -34,8 +34,10 @@
 
 // PROTOTYPES
 void error(const char *msg);
-void checkArguments(int argc, char* argv[]);
-
+void checkArguments(int argc, char* functionName);
+int setupServerAddress(struct sockaddr_in* serverAddress, char* argv[]);
+int createTCPSocket(int* socketFD);
+int connectToServer(int socketFD, struct sockaddr_in* serverAddress);
 int getInput(char* input, int inputSize);
 int sendMessage(char* message, int fileDescriptor);
 int recvMessage(char* message, int fileDescriptor);
@@ -44,34 +46,21 @@ void quit(int socketFD);
 
 int main(int argc, char *argv[])
 {
-    int socketFD, portNumber, charsWritten, charsRead;
+    int socketFD, handleLength;
     struct sockaddr_in serverAddress;
-    struct hostent* serverHostInfo;
     char buffer[MAX_CHARACTERS + 1], handle[MAX_HANDLE_SIZE + 1];
 
-    checkArguments(argc, argv);   // Check usage & args
+    checkArguments(argc, argv[0]);              // Check usage & args
 
-    // Set up server address struct
-    memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
-	portNumber = atoi(argv[2]); // Get the port number, convert to an integer from a string
-	serverAddress.sin_family = AF_INET; // Create a network-capable socket
-	serverAddress.sin_port = htons(portNumber); // Store the port number
-	serverHostInfo = gethostbyname(argv[1]); // Convert the machine name into a special form of address
-	if (serverHostInfo == NULL) { fprintf(stderr, "CLIENT: ERROR, no such host\n"); exit(0); }
-	memcpy((char*)&serverAddress.sin_addr.s_addr, (char*)serverHostInfo->h_addr, serverHostInfo->h_length); // Copy in the address
-
-    // Create TCP Socket
-    socketFD = socket(AF_INET, SOCK_STREAM, 0); // Create the socket
-	if (socketFD < 0) error("CLIENT: ERROR opening socket");
-
-    // Connect to Server
-    if (connect(socketFD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) // Connect socket to address
-		error("CLIENT: ERROR connecting");
+    // Initiate Contact
+    setupServerAddress(&serverAddress, argv);   // Set up server address struct
+    createTCPSocket(&socketFD);                 // Create TCP Socket
+    connectToServer(socketFD, &serverAddress);  // Connect to Server
 
     // Get Handle From User
     printf("Enter Handle: ");               // Inform User to Enter Handle
     getInput(handle, MAX_HANDLE_SIZE + 1);  // Get User's Handle
-    int handleLength = strlen(handle);      // Get the Number of Characters of Handle
+    handleLength = strlen(handle);          // Get the Number of Characters of Handle
     
     while (1)
     {
@@ -105,12 +94,55 @@ void error(const char *msg)
 
 /*********************************************************************
 *********************************************************************/
-void checkArguments(int argc, char* argv[])
+void checkArguments(int argc, char* functionName)
 {
     if (argc < NUM_ARGS)
     {
-        fprintf(stderr,"USAGE: %s hostname port\n", argv[0]);
+        fprintf(stderr,"USAGE: %s hostname port\n", functionName);
         exit(0);
+    }
+}
+
+/*********************************************************************
+*********************************************************************/
+int setupServerAddress(struct sockaddr_in* serverAddress, char* argv[])
+{
+    int portNumber = atoi(argv[2]); // Get the port number, convert to an integer from a string
+    struct hostent* serverHostInfo;
+
+    memset((char*)serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
+	serverAddress->sin_family = AF_INET; // Create a network-capable socket
+	serverAddress->sin_port = htons(portNumber); // Store the port number
+	serverHostInfo = gethostbyname(argv[1]); // Convert the machine name into a special form of address
+	if (serverHostInfo == NULL) { fprintf(stderr, "CLIENT: ERROR, no such host\n"); exit(0); }
+	memcpy((char*)&(*serverAddress).sin_addr.s_addr, (char*)serverHostInfo->h_addr, serverHostInfo->h_length); // Copy in the address
+
+    return 0;
+}
+
+/*********************************************************************
+*********************************************************************/
+int createTCPSocket(int* socketFD)
+{
+    // Create the socket
+    *socketFD = socket(AF_INET, SOCK_STREAM, 0);
+    // If socket cannot be created, inform user and exit program.
+	if (socketFD < 0)
+    {
+        error("CLIENT: ERROR opening socket");
+    }
+    return 0;
+}
+
+/*********************************************************************
+*********************************************************************/
+int connectToServer(int socketFD, struct sockaddr_in* serverAddress)
+{
+    // Connect to Server Address
+    if (connect(socketFD, (struct sockaddr*)serverAddress, sizeof(*serverAddress)) < 0)
+    {
+        // If cannot connect to server, inform user and exit program.
+        error("CLIENT: ERROR connecting");
     }
 }
 
