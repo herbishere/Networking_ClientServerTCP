@@ -27,8 +27,8 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 
-#define MAX_CHARACTERS 501
-#define MAX_HANDLE_SIZE 11
+#define MAX_CHARACTERS 500
+#define MAX_HANDLE_SIZE 10
 #define h_addr h_addr_list[0]
 
 // PROTOTYPES
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     int socketFD, portNumber, charsWritten, charsRead;
     struct sockaddr_in serverAddress;
     struct hostent* serverHostInfo;
-    char buffer[MAX_CHARACTERS], handle[MAX_HANDLE_SIZE];
+    char buffer[MAX_CHARACTERS + 1], handle[MAX_HANDLE_SIZE + 1];
 
     if (argc < 3) { fprintf(stderr,"USAGE: %s hostname port\n", argv[0]); exit(0); } // Check usage & args
 
@@ -66,21 +66,20 @@ int main(int argc, char *argv[])
 		error("CLIENT: ERROR connecting");
 
     // Get Handle From User
-    printf("Enter Handle: ");
-    getInput(handle, MAX_HANDLE_SIZE);
-    int handleLength = strlen(handle);  // Get the Number of Characters of Handle
-    handle[handleLength - 1] = '\0';       // Remove Trailing Newline
-
+    printf("Enter Handle: ");               // Inform User to Enter Handle
+    getInput(handle, MAX_HANDLE_SIZE + 1);  // Get User's Handle
+    int handleLength = strlen(handle);      // Get the Number of Characters of Handle
+    
     while (1)
     {
         // Get Message To Send or Quit Program
         printf("%s> ", handle);
-        getInput(buffer, MAX_CHARACTERS - handleLength);
-        checkQuit(buffer, "\\quit\n", socketFD);
+        getInput(buffer, MAX_CHARACTERS + 1 - handleLength);
+        checkQuit(buffer, "\\quit", socketFD);
 
         // Send Message
-        char message[MAX_CHARACTERS];
-        snprintf(message, MAX_CHARACTERS, "%s> %s", handle, buffer);
+        char message[MAX_CHARACTERS + 1];
+        snprintf(message, MAX_CHARACTERS + 1, "%s> %s", handle, buffer);
         sendMessage(message, socketFD);
 
         // Receive Message from Server
@@ -97,7 +96,22 @@ int main(int argc, char *argv[])
 *********************************************************************/
 int getInput(char* input, int inputSize)
 {
-    fgets(input, inputSize, stdin);
+    if(fgets(input, inputSize, stdin))
+    {
+        char *p;
+        // Replace Newline Character
+        if(p = strchr(input, '\n'))
+        {
+            *p = '\0';
+        }
+        // Clear the Stream Buffer
+        else
+        {
+            scanf("%*[^\n]");
+            scanf("%*c");
+            printf("Input Too Long. Input Cut\n");
+        }
+    }
     return 0;
 }
 
@@ -114,7 +128,7 @@ int sendMessage(char* message, int fileDescriptor)
 {
 	int charsWritten;
 
-	charsWritten = send(fileDescriptor, message, strlen(message), 0); // Write to the server
+	charsWritten = send(fileDescriptor, message, strlen(message) + 1, 0); // Write to the server
 	if (charsWritten < 0) { error("CLIENT: ERROR writing to socket"); }
 	if (charsWritten < strlen(message)) printf("CLIENT: WARNING: Not all data written to socket!\n");
 	
