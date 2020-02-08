@@ -32,7 +32,7 @@
 #define h_addr h_addr_list[0]
 
 // PROTOTYPES
-void error(const char *msg) { perror(msg); exit(1); } // Error function used for reporting issues
+void error(const char *msg);
 int getInput(char* input, int inputSize);
 int sendMessage(char* message, int fileDescriptor);
 int recvMessage(char* message, int fileDescriptor);
@@ -90,6 +90,14 @@ int main(int argc, char *argv[])
     }
 
     return 0;
+}
+
+/*********************************************************************
+*********************************************************************/
+void error(const char *msg)
+{
+    perror(msg);
+    exit(1);
 }
 
 /*********************************************************************
