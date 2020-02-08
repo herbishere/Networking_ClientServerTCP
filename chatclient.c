@@ -27,17 +27,20 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 
-#define MAX_CHARACTERS 500
-#define MAX_HANDLE_SIZE 10
+#define MAX_CHARACTERS 500  // Max Characters To Send to Server
+#define MAX_HANDLE_SIZE 10  // Max Characters of Handle
+#define NUM_ARGS 3          // Number of Arguments for Function
 #define h_addr h_addr_list[0]
 
 // PROTOTYPES
 void error(const char *msg);
+void checkArguments(int argc, char* argv[]);
+
 int getInput(char* input, int inputSize);
 int sendMessage(char* message, int fileDescriptor);
 int recvMessage(char* message, int fileDescriptor);
 int checkQuit(char* buffer, char* exitCommand, int socketFD);
-int quit(int socketFD);
+void quit(int socketFD);
 
 int main(int argc, char *argv[])
 {
@@ -46,7 +49,7 @@ int main(int argc, char *argv[])
     struct hostent* serverHostInfo;
     char buffer[MAX_CHARACTERS + 1], handle[MAX_HANDLE_SIZE + 1];
 
-    if (argc < 3) { fprintf(stderr,"USAGE: %s hostname port\n", argv[0]); exit(0); } // Check usage & args
+    checkArguments(argc, argv);   // Check usage & args
 
     // Set up server address struct
     memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
@@ -98,6 +101,17 @@ void error(const char *msg)
 {
     perror(msg);
     exit(1);
+}
+
+/*********************************************************************
+*********************************************************************/
+void checkArguments(int argc, char* argv[])
+{
+    if (argc < NUM_ARGS)
+    {
+        fprintf(stderr,"USAGE: %s hostname port\n", argv[0]);
+        exit(0);
+    }
 }
 
 /*********************************************************************
@@ -186,7 +200,7 @@ int checkQuit(char* buffer, char* exitCommand, int socketFD)
 
 /*********************************************************************
 *********************************************************************/
-int quit(int socketFD)
+void quit(int socketFD)
 {
     close(socketFD);                // Close the Socket
     exit(0);                        // Exit the Program
