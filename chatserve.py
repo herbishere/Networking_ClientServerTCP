@@ -158,7 +158,7 @@ if __name__ == "__main__":
     HOST_NAME = 'HOST'          # The Name to Display to Clients
     SEPARATOR = '> '            # The Symbols that Separate the Host Name from the Message
     QUIT_CMD = '\\quit'         # The Command to Terminate the Connection
-    HOST = 'localhost'          # The Host of the Server
+    HOST = ''                   # The Host of the Server
     PORT = getPort(argv, 9999)  # The Port the Server is Using
 
     signal(SIGINT, signalHandler)   # Set Signal Handler
