@@ -10,9 +10,9 @@
         terminates the connection with the '\\quit' (read: 
         backslash-quit) (b) command. To terminate the server, 
         send a SIGINT with ctrl + c in the terminal.
-    Code Adapted From:
-        Python 3 Socket Documentation
-            > https://docs.python.org/3/library/socket.html
+        Code Adapted From:
+            Python 3 Socket Documentation
+                > https://docs.python.org/3/library/socket.html
     Course Name:     CS 372 Intro to Computer Networks
     Last Modified:   02/08/2020
 '''
