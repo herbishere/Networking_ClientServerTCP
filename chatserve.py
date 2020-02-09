@@ -14,7 +14,7 @@
         Python 3 Socket Documentation
             > https://docs.python.org/3/library/socket.html
     Course Name:     CS 372 Intro to Computer Networks
-    Last Modified:   02/07/2020
+    Last Modified:   02/08/2020
 '''
 
 from sys import argv
@@ -38,7 +38,7 @@ def getPort(argv, default):
 def initServer(hostName, portNumber):
     '''
     Initializes a TCP Listen Server.
-    Based on https://docs.python.org/3/library/socket.html
+    Adapted from https://docs.python.org/3/library/socket.html
     Pre-Conditions:
         hostName = The server's host
         portNumber = The port the server is running on
@@ -138,8 +138,14 @@ def terminateConnection(addr, conncetionSocket, terminator):
 
 def signalHandler(signal, frame):
     '''
-    The function that will run once the 
-    https://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
+    The function that will run once the SIGINT command is received.
+    Adapted from https://stackoverflow.com/questions/1112343/how-do-i-capture-sigint-in-python
+    Pre-Conditions:
+        signal = The signal number.
+        frame = The current stack frame.
+    Post-Conditions:
+        Print that SIGINT was recieved and terminate the program.
+
     '''
     # Show that the program is ending
     print('\nSIGINT detected. Terminating Program...')
@@ -167,6 +173,7 @@ if __name__ == "__main__":
         with connectionSocket:
             # Show the New Connection that has been established
             print('Connected by', addr)
+
             # Get/Send Messages from/to Client
             while True:
                 # Get Message From Client
