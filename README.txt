@@ -29,3 +29,6 @@
         Disconnecting / Terminating the Program
             Entering the command "\quit" will disconnect the client from the server
             and terminate the program.
+
+# Testing Machine
+Tested on Linux Mint 19.3 and on the OSU flip server.
