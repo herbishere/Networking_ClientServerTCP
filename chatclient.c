@@ -116,7 +116,7 @@ void checkArguments(int argc, char* functionName)
 {
     if (argc < NUM_ARGS)
     {
-        fprintf(stderr,"USAGE: %s hostname port\n", functionName);
+        fprintf(stderr,"USAGE: %s serverhost port\n", functionName);
         exit(0);
     }
 }

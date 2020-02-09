@@ -2,7 +2,7 @@
     Programmer Name: Herbert Diaz <diazh@oregonstate.edu>
     Program Name:    Program 1 - Chat Server
     Program Description:
-        Usage: chatserve [portnum]
+        Usage: python3 chatserve.py [portnum]
         This program serves as the server for a messaging system
         between a client and server using the TCP protocol. After
         connecting to and receiving a message from the user, the
@@ -180,9 +180,9 @@ if __name__ == "__main__":
                 message = recvMessage(connectionSocket, MAX_CHARACTERS + 1,ENCODING)
 
                 # Process Recieved Message
-                if message:                         # Display Received Message, 
+                if message: # Display Received Message
                     print(message)
-                else:                               # Exit Loop if Client Terminated Connection
+                else:       # Exit Loop if Client Terminated Connection
                     terminateConnection(addr, connectionSocket, "Client")
                     break
 

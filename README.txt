@@ -11,7 +11,7 @@
     The Server:
     (1) On the terminal run the command "python3 chatserve.py [PORT NUMBER]".
     The Client:
-    (1) After compiling, run the command "./chatclient [HOST NAME] [PORT NUMBER]".
+    (1) After compiling, run the command "./chatclient [SERVER HOST] [PORT NUMBER]".
 
 # Control
     The Server:
