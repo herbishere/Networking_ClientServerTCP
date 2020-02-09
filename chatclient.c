@@ -33,16 +33,20 @@
 #define h_addr h_addr_list[0]   // The First Host Address
 
 // PROTOTYPES
-void error(const char *msg);
+// Initiate Contact
 void checkArguments(int argc, char* functionName);
 int setupServerAddress(struct sockaddr_in* serverAddress, char* argv[]);
 int createTCPSocket(int* socketFD);
 int connectToServer(int socketFD, struct sockaddr_in* serverAddress);
+// Send Messages
 int getInput(char* input, int inputSize);
 int sendMessage(char* message, int fileDescriptor);
+// Receive Messages
 int recvMessage(char* message, int fileDescriptor);
 int checkQuit(char* buffer, char* exitCommand, int socketFD);
 void quit(int socketFD);
+// Error Handling
+void error(const char *msg);
 
 int main(int argc, char *argv[])
 {
