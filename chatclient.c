@@ -27,10 +27,10 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 
-#define MAX_CHARACTERS 500  // Max Characters To Send to Server
-#define MAX_HANDLE_SIZE 10  // Max Characters of Handle
-#define NUM_ARGS 3          // Number of Arguments for Function
-#define h_addr h_addr_list[0]
+#define MAX_CHARACTERS 500      // Max Characters To Send to Server
+#define MAX_HANDLE_SIZE 10      // Max Characters of Handle
+#define NUM_ARGS 3              // Number of Arguments for Function
+#define h_addr h_addr_list[0]   // The First Host Address
 
 // PROTOTYPES
 void error(const char *msg);
@@ -46,9 +46,11 @@ void quit(int socketFD);
 
 int main(int argc, char *argv[])
 {
-    int socketFD, handleLength;
-    struct sockaddr_in serverAddress;
-    char buffer[MAX_CHARACTERS + 1], handle[MAX_HANDLE_SIZE + 1];
+    int socketFD,       // File Descriptor for the Socket
+        handleLength;   // Number of Characters of the Handle
+    struct sockaddr_in serverAddress;   // The server address info
+    char    buffer[MAX_CHARACTERS + 1], // The buffer for the keyboard input
+            handle[MAX_HANDLE_SIZE + 1];// The user's handle
 
     checkArguments(argc, argv[0]);              // Check usage & args
 
@@ -66,12 +68,12 @@ int main(int argc, char *argv[])
     {
         // Get Message To Send or Quit Program
         printf("%s> ", handle);
-        getInput(buffer, MAX_CHARACTERS + 1 - handleLength);
-        checkQuit(buffer, "\\quit", socketFD);
+        getInput(buffer, MAX_CHARACTERS + 1 - handleLength);// Get User's Message
+        checkQuit(buffer, "\\quit", socketFD);              // Quit if User sends Quit Command
 
         // Send Message to Server
         char message[MAX_CHARACTERS + 1];
-        snprintf(message, MAX_CHARACTERS + 1, "%s> %s", handle, buffer);
+        snprintf(message, MAX_CHARACTERS + 1, "%s> %s", handle, buffer);// Format Message
         sendMessage(message, socketFD);
 
         // Receive Message from Server
