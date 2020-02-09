@@ -179,20 +179,20 @@ if __name__ == "__main__":
                 # Get Message From Client
                 message = recvMessage(connectionSocket, MAX_CHARACTERS + 1,ENCODING)
 
-                # Process Recieved Message
-                if message: # Display Received Message
+                # If message is received, display it. Otherwise, end connection to client.
+                if message:
                     print(message)
-                else:       # Exit Loop if Client Terminated Connection
+                else:
                     terminateConnection(addr, connectionSocket, "Client")
                     break
 
                 # Get Message From User
                 message = getInput(HOST_NAME + SEPARATOR, MAX_CHARACTERS - len(HOST_NAME) - len(SEPARATOR))
 
-                # Process User's Input
-                if checkQuit(message, QUIT_CMD):    # Terminate Connection if User Entered Quit Command
+                # If user quits, end connection to client. Otherwise, send message to client.
+                if checkQuit(message, QUIT_CMD):
                     terminateConnection(addr, connectionSocket, "Server")
                     break
-                else:                               # Prepare and Send Message to Client
+                else:
                     message = prepareMessage(message, HOST_NAME, SEPARATOR)
                     sendMessage(message, connectionSocket, ENCODING)
